@@ -114,4 +114,3 @@ def delete_from_s3(s3_url: str) -> None:
         raise HTTPException(
             status_code=500, detail=f"S3 delete failed: {str(e)}"
         )
-    
