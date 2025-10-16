@@ -44,6 +44,6 @@ class Settings(BaseSettings):
 # lru_cache ensures that Settings() is only loaded *once*.
 # This prevents re-reading the .env file on every request.
 @lru_cache()
-def get_settings() -> Settings:
+def get_settings():
     # Return a single, cached instance of Settings
     return Settings()
