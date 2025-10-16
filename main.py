@@ -32,7 +32,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_credentials=True,
-    allow_methids=["*"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
@@ -73,14 +73,14 @@ def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
     ).first()
 
     if existing_user:
-        return HTTPException(
+        raise HTTPException(
             status_code=400, detail="Email or username already registered"
         )
     # Create new user
     db_user = models.User(
         email=user.email,
         username=user.username,
-        hash_password=auth.hash_password(user.password),
+        hashed_password=auth.hash_password(user.password),
         full_name=user.full_name
     )
 
@@ -95,9 +95,11 @@ def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
 def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
     """Login and get access token"""
 
-    # Find user
-    db_user = db.query(models.User).filter
-    (models.User.username == user.username).first()
+    # Find user by username OR email
+    db_user = db.query(models.User).filter(
+        (models.User.username == user.username) | 
+        (models.User.email == user.username)
+    ).first()
 
     if not db_user or not auth.verify_password(
         user.password, db_user.hashed_password
@@ -108,7 +110,7 @@ def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
         )
     # Create token
     access_token = auth.create_access_token(data={"sub": db_user.id})
-    return {"access token": access_token, "tokey type": "bearer"}
+    return {"access_token": access_token, "token_type": "bearer"}
 
 
 @app.get("/auth/me", response_model=schemas.UserResponse)
